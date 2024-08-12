@@ -97,12 +97,14 @@ impl Miner {
         // Dispatch job to each thread
         let progress_bar = Arc::new(spinner::new_progress_bar());
         let global_best_difficulty = Arc::new(RwLock::new(0u32));
-        progress_bar.set_message("Mining...");
+        let global_hash_count = Arc::new(RwLock::new(0u64)); // Track the number of hashes computed
+        progress_bar.set_message("Mining");
         let core_ids = core_affinity::get_core_ids().unwrap();
         let handles: Vec<_> = core_ids
             .into_iter()
             .map(|i| {
                 let global_best_difficulty = Arc::clone(&global_best_difficulty);
+                let global_hash_count = Arc::clone(&global_hash_count);
                 std::thread::spawn({
                     let proof = proof.clone();
                     let progress_bar = progress_bar.clone();
@@ -134,24 +136,41 @@ impl Miner {
                                     best_nonce = nonce;
                                     best_difficulty = difficulty;
                                     best_hash = hx;
-                                    // {{ edit_1 }}
-                                    if best_difficulty.gt(&*global_best_difficulty.read().unwrap())
-                                    {
+                                    if best_difficulty.gt(&*global_best_difficulty.read().unwrap()) {
                                         *global_best_difficulty.write().unwrap() = best_difficulty;
                                     }
-                                    // {{ edit_1 }}
                                 }
                             }
 
+                            // Increment hash count
+                            *global_hash_count.write().unwrap() += 1;
+
                             // Exit if time has elapsed
                             if nonce % 100 == 0 {
-                                let global_best_difficulty =
-                                    *global_best_difficulty.read().unwrap();
-                                if timer.elapsed().as_secs().ge(&cutoff_time) {
+                                let global_best_difficulty = *global_best_difficulty.read().unwrap();
+                                let elapsed_secs = timer.elapsed().as_secs() as u64;
+                                let total_hashes = *global_hash_count.read().unwrap();
+                                let hashes_per_sec = total_hashes as f64 / elapsed_secs as f64;
+
+                                // Calculate chance to hit the next higher difficulty
+                                let next_difficulty = global_best_difficulty + 1;
+                                let chance_next = 1.0 - f64::exp(-hashes_per_sec / 2f64.powi(next_difficulty as i32));
+
+                                if elapsed_secs >= cutoff_time {
                                     if i.id == 0 {
                                         progress_bar.set_message(format!(
-                                            "Mining... (difficulty {})",
+                                            "Mining {} {} | difficulty {} | h/s: {:.2} | cth {} - {:.5}%",
+                                            loading_bar(elapsed_secs, cutoff_time, 20),
+                                            format_duration(
+                                                cutoff_time
+                                                    .saturating_sub(elapsed_secs)
+                                                    .try_into()
+                                                    .unwrap_or(0)
+                                            ),
                                             global_best_difficulty,
+                                            hashes_per_sec,
+                                            next_difficulty,
+                                            chance_next * 100.0  // Convert to percentage
                                         ));
                                     }
                                     if global_best_difficulty.ge(&min_difficulty) {
@@ -160,12 +179,18 @@ impl Miner {
                                     }
                                 } else if i.id == 0 {
                                     progress_bar.set_message(format!(
-                                        "Mining... (difficulty {}, time {})",
-                                        global_best_difficulty,
+                                        "Mining {} {} | difficulty {} | h/s: {:.2} | cth {} - {:.5}%",
+                                        loading_bar(elapsed_secs, cutoff_time, 20),
                                         format_duration(
-                                            cutoff_time.saturating_sub(timer.elapsed().as_secs())
-                                                as u32
+                                            cutoff_time
+                                                .saturating_sub(elapsed_secs)
+                                                .try_into()
+                                                .unwrap_or(0)
                                         ),
+                                        global_best_difficulty,
+                                        hashes_per_sec,
+                                        next_difficulty,
+                                        chance_next * 100.0  // Convert to percentage
                                     ));
                                 }
                             }
@@ -209,7 +234,7 @@ impl Miner {
         let num_cores = num_cpus::get() as u64;
         if cores.gt(&num_cores) {
             println!(
-                "{} Cannot exceeds available cores ({})",
+                "{} Cannot exceed available cores ({})",
                 "WARNING".bold().yellow(),
                 num_cores
             );
@@ -267,4 +292,11 @@ fn format_duration(seconds: u32) -> String {
     let minutes = seconds / 60;
     let remaining_seconds = seconds % 60;
     format!("{:02}:{:02}", minutes, remaining_seconds)
+}
+
+// Helper function to generate a loading bar based on time progress
+fn loading_bar(elapsed: u64, total: u64, length: usize) -> String {
+    let progress = (elapsed as f64 / total as f64 * length as f64).round() as usize;
+    let bar: String = "=".repeat(progress) + &" ".repeat(length - progress);
+    format!("[{}]", bar)
 }
