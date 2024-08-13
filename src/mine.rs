@@ -1,9 +1,6 @@
 use std::{sync::Arc, sync::RwLock, time::Instant};
 use colored::*;
-use drillx::{
-    equix::{self},
-    Hash, Solution,
-};
+use drillx::{equix::{self}, Hash, Solution};
 use ore_api::{
     consts::{BUS_ADDRESSES, BUS_COUNT, EPOCH_DURATION},
     state::{Bus, Config, Proof},
@@ -105,59 +102,81 @@ impl Miner {
             .map(|i| {
                 let global_best_difficulty = Arc::clone(&global_best_difficulty);
                 let global_hash_count = Arc::clone(&global_hash_count);
-                std::thread::spawn({
-                    let proof = proof.clone();
-                    let progress_bar = progress_bar.clone();
-                    let mut memory = equix::SolverMemory::new();
-                    move || {
-                        // Return if core should not be used
-                        if (i.id as u64).ge(&cores) {
-                            return (0, 0, Hash::default());
-                        }
-
-                        // Pin to core
-                        let _ = core_affinity::set_for_current(i);
-
-                        // Start hashing
-                        let timer = Instant::now();
-                        let mut nonce = u64::MAX.saturating_div(cores).saturating_mul(i.id as u64);
-                        let mut best_nonce = nonce;
-                        let mut best_difficulty = 0;
-                        let mut best_hash = Hash::default();
-                        loop {
-                            // Create hash
-                            if let Ok(hx) = drillx::hash_with_memory(
-                                &mut memory,
-                                &proof.challenge,
-                                &nonce.to_le_bytes(),
-                            ) {
-                                let difficulty = hx.difficulty();
-                                if difficulty.gt(&best_difficulty) {
-                                    best_nonce = nonce;
-                                    best_difficulty = difficulty;
-                                    best_hash = hx;
-                                    if best_difficulty.gt(&*global_best_difficulty.read().unwrap()) {
-                                        *global_best_difficulty.write().unwrap() = best_difficulty;
-                                    }
-                                }
+                std::thread::Builder::new()
+                    .stack_size(4 * 1024 * 1024) // 4 MB stack size (adjust as necessary)
+                    .spawn({
+                        let proof = proof.clone();
+                        let progress_bar = progress_bar.clone();
+                        let mut memory = equix::SolverMemory::new();
+                        move || {
+                            // Return if core should not be used
+                            if (i.id as u64).ge(&cores) {
+                                return (0, 0, Hash::default());
                             }
 
-                            // Increment hash count
-                            *global_hash_count.write().unwrap() += 1;
+                            // Pin to core (you can comment this out to test without core affinity)
+                            // let _ = core_affinity::set_for_current(i);
 
-                            // Exit if time has elapsed
-                            if nonce % 100 == 0 {
-                                let global_best_difficulty = *global_best_difficulty.read().unwrap();
-                                let elapsed_secs = timer.elapsed().as_secs() as u64;
-                                let total_hashes = *global_hash_count.read().unwrap();
-                                let hashes_per_sec = total_hashes as f64 / elapsed_secs as f64;
+                            // Start hashing
+                            let timer = Instant::now();
+                            let mut nonce = u64::MAX.saturating_div(cores).saturating_mul(i.id as u64);
+                            let mut best_nonce = nonce;
+                            let mut best_difficulty = 0;
+                            let mut best_hash = Hash::default();
+                            loop {
+                                // Create hash
+                                if let Ok(hx) = drillx::hash_with_memory(
+                                    &mut memory,
+                                    &proof.challenge,
+                                    &nonce.to_le_bytes(),
+                                ) {
+                                    let difficulty = hx.difficulty();
+                                    if difficulty.gt(&best_difficulty) {
+                                        best_nonce = nonce;
+                                        best_difficulty = difficulty;
+                                        best_hash = hx;
+                                        if best_difficulty.gt(&*global_best_difficulty.read().unwrap()) {
+                                            *global_best_difficulty.write().unwrap() = best_difficulty;
+                                        }
+                                    }
+                                }
 
-                                // Calculate chance to hit the next higher difficulty
-                                let next_difficulty = global_best_difficulty + 1;
-                                let chance_next = 1.0 - f64::exp(-hashes_per_sec / 2f64.powi(next_difficulty as i32));
+                                // Increment hash count
+                                *global_hash_count.write().unwrap() += 1;
 
-                                if elapsed_secs >= cutoff_time {
-                                    if i.id == 0 {
+                                // Exit if time has elapsed
+                                if nonce % 100 == 0 {
+                                    let global_best_difficulty = *global_best_difficulty.read().unwrap();
+                                    let elapsed_secs = timer.elapsed().as_secs() as u64;
+                                    let total_hashes = *global_hash_count.read().unwrap();
+                                    let hashes_per_sec = total_hashes as f64 / elapsed_secs as f64;
+
+                                    // Calculate chance to hit the next higher difficulty
+                                    let next_difficulty = global_best_difficulty + 1;
+                                    let chance_next = 1.0 - f64::exp(-hashes_per_sec / 2f64.powi(next_difficulty as i32));
+
+                                    if elapsed_secs >= cutoff_time {
+                                        if i.id == 0 {
+                                            progress_bar.set_message(format!(
+                                                "Mining {} {} | difficulty {} | h/s: {:.2} | cth {} - {:.5}%",
+                                                loading_bar(elapsed_secs, cutoff_time, 20),
+                                                format_duration(
+                                                    cutoff_time
+                                                        .saturating_sub(elapsed_secs)
+                                                        .try_into()
+                                                        .unwrap_or(0)
+                                                ),
+                                                global_best_difficulty,
+                                                hashes_per_sec,
+                                                next_difficulty,
+                                                chance_next * 100.0  // Convert to percentage
+                                            ));
+                                        }
+                                        if global_best_difficulty.ge(&min_difficulty) {
+                                            // Mine until min difficulty has been met
+                                            break;
+                                        }
+                                    } else if i.id == 0 {
                                         progress_bar.set_message(format!(
                                             "Mining {} {} | difficulty {} | h/s: {:.2} | cth {} - {:.5}%",
                                             loading_bar(elapsed_secs, cutoff_time, 20),
@@ -173,36 +192,17 @@ impl Miner {
                                             chance_next * 100.0  // Convert to percentage
                                         ));
                                     }
-                                    if global_best_difficulty.ge(&min_difficulty) {
-                                        // Mine until min difficulty has been met
-                                        break;
-                                    }
-                                } else if i.id == 0 {
-                                    progress_bar.set_message(format!(
-                                        "Mining {} {} | difficulty {} | h/s: {:.2} | cth {} - {:.5}%",
-                                        loading_bar(elapsed_secs, cutoff_time, 20),
-                                        format_duration(
-                                            cutoff_time
-                                                .saturating_sub(elapsed_secs)
-                                                .try_into()
-                                                .unwrap_or(0)
-                                        ),
-                                        global_best_difficulty,
-                                        hashes_per_sec,
-                                        next_difficulty,
-                                        chance_next * 100.0  // Convert to percentage
-                                    ));
                                 }
+
+                                // Increment nonce
+                                nonce += 1;
                             }
 
-                            // Increment nonce
-                            nonce += 1;
+                            // Return the best nonce
+                            (best_nonce, best_difficulty, best_hash)
                         }
-
-                        // Return the best nonce
-                        (best_nonce, best_difficulty, best_hash)
-                    }
-                })
+                    })
+                    .unwrap() // Handle errors if necessary
             })
             .collect();
 
