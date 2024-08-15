@@ -14,7 +14,7 @@ impl Miner {
 
         // Sign and send transaction.
         println!("Generating challenge...");
-        let ix = ore_api::instruction::open(signer.pubkey(), signer.pubkey(), fee_payer.pubkey());
+        let ix = gemm_api::instruction::open(signer.pubkey(), signer.pubkey(), fee_payer.pubkey());
         self.send_and_confirm(&[ix], ComputeBudget::Fixed(400_000), false)
             .await
             .ok();
