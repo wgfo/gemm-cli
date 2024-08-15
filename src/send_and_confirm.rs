@@ -3,7 +3,7 @@ use std::{str::FromStr, time::Duration};
 use chrono::Local;
 use colored::*;
 use indicatif::ProgressBar;
-use gemm_api::error::gemmError;
+use gemm_api::error::GemmError;
 use rand::seq::SliceRandom;
 use solana_client::{
     client_error::{ClientError, ClientErrorKind, Result as ClientResult},
@@ -187,7 +187,7 @@ impl Miner {
                                                         // Custom instruction error, parse into gemmError
                                                         solana_program::instruction::InstructionError::Custom(err_code) => {
                                                             match err_code {
-                                                                e if e == gemmError::NeedsReset as u32 => {
+                                                                e if e == GemmError::NeedsReset as u32 => {
                                                                     attempts = 0;
                                                                     log_error(&progress_bar, "Needs reset. Retrying...", false);
                                                                     break 'confirm;
