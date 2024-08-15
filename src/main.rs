@@ -76,10 +76,10 @@ enum Commands {
     #[command(about = "Stake to earn a rewards multiplier")]
     Stake(StakeArgs),
 
-    #[command(about = "Send ORE to anyone, anywhere in the world.")]
+    #[command(about = "Send GEMM to anyone, anywhere in the world.")]
     Transfer(TransferArgs),
 
-    #[command(about = "Upgrade your ORE tokens from v1 to v2")]
+    #[command(about = "Upgrade your GEMM tokens from v1 to v2")]
     Upgrade(UpgradeArgs),
 
     #[cfg(feature = "admin")]
