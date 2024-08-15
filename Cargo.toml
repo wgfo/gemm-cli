@@ -1,17 +1,17 @@
 [package]
-name = "ore-cli"
+name = "gemm-cli"
 version = "2.3.0"
 edition = "2021"
 license = "Apache-2.0"
-description = "A command line interface for ORE cryptocurrency mining."
-documentation = "https://ore.supply"
-homepage = "https://ore.supply"
-repository = "https://github.com/regolith-labs/ore-cli"
+description = "A command line interface for GEMM cryptocurrency mining."
+documentation = "https://gemm.lol/"
+homepage = "https://gemm.lol/"
+repository = "https://github.com/KeenHero/gemm-cli"
 readme = "./README.md"
 keywords = ["solana", "crypto", "mining"]
 
 [[bin]]
-name = "ore"
+name = "gemm"
 path = "src/main.rs"
 
 [features]
@@ -31,8 +31,8 @@ drillx = "2.0.0"
 futures = "0.3.30"
 indicatif = "0.17.8"
 num_cpus = "1.16.0"
-ore-api = "2.1.0"
-ore-utils = "2.1.0"
+gemm-api = "2.1.0"
+gemm-utils = "2.1.0"
 rand = "0.8.4"
 reqwest = { version = "0.12", features = ["json"] }
 solana-cli-config = "^1.18"
