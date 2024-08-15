@@ -184,10 +184,10 @@ impl Miner {
                                                 // Instruction error
                                                 solana_sdk::transaction::TransactionError::InstructionError(_, err) => {
                                                     match err {
-                                                        // Custom instruction error, parse into gemmError
+                                                        // Custom instruction error, parse into GemError
                                                         solana_program::instruction::InstructionError::Custom(err_code) => {
                                                             match err_code {
-                                                                e if e == GemmError::NeedsReset as u32 => {
+                                                                e if e == GemError::NeedsReset as u32 => {
                                                                     attempts = 0;
                                                                     log_error(&progress_bar, "Needs reset. Retrying...", false);
                                                                     break 'confirm;
