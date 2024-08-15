@@ -3,7 +3,7 @@ use std::{str::FromStr, time::Duration};
 use chrono::Local;
 use colored::*;
 use indicatif::ProgressBar;
-use ore_api::error::OreError;
+use gemm_api::error::gemmError;
 use rand::seq::SliceRandom;
 use solana_client::{
     client_error::{ClientError, ClientErrorKind, Result as ClientResult},
@@ -184,10 +184,10 @@ impl Miner {
                                                 // Instruction error
                                                 solana_sdk::transaction::TransactionError::InstructionError(_, err) => {
                                                     match err {
-                                                        // Custom instruction error, parse into OreError
+                                                        // Custom instruction error, parse into gemmError
                                                         solana_program::instruction::InstructionError::Custom(err_code) => {
                                                             match err_code {
-                                                                e if e == OreError::NeedsReset as u32 => {
+                                                                e if e == gemmError::NeedsReset as u32 => {
                                                                     attempts = 0;
                                                                     log_error(&progress_bar, "Needs reset. Retrying...", false);
                                                                     break 'confirm;
