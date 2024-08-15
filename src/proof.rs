@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use ore_api::consts::TOKEN_DECIMALS;
+use gemm_api::consts::TOKEN_DECIMALS;
 use solana_program::pubkey::Pubkey;
 use solana_sdk::signature::Signer;
 use spl_token::amount_to_ui_amount;
@@ -23,7 +23,7 @@ impl Miner {
         println!("Address: {:?}", address);
         println!("Authority: {:?}", proof.authority);
         println!(
-            "Balance: {:?} ORE",
+            "Balance: {:?} GEMM",
             amount_to_ui_amount(proof.balance, TOKEN_DECIMALS)
         );
         println!(
@@ -35,7 +35,7 @@ impl Miner {
         println!("Miner: {:?}", proof.miner);
         println!("Total hashes: {:?}", proof.total_hashes);
         println!(
-            "Total rewards: {:?} ORE",
+            "Total rewards: {:?} GEMM",
             amount_to_ui_amount(proof.total_rewards, TOKEN_DECIMALS)
         );
     }
