@@ -3,7 +3,7 @@ use std::{str::FromStr, time::Duration};
 use chrono::Local;
 use colored::*;
 use indicatif::ProgressBar;
-use gemm_api::error::GemmError;
+use gemm_api::error::GemError;
 use rand::seq::SliceRandom;
 use solana_client::{
     client_error::{ClientError, ClientErrorKind, Result as ClientResult},
