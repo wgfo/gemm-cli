@@ -7,7 +7,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  BINARY_NAME: ore
+  BINARY_NAME: gemm
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
