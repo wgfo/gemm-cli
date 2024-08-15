@@ -12,7 +12,7 @@ impl Miner {
         println!("{}: {}", "Min difficulty".bold(), config.min_difficulty);
         println!("{}: {}", "Base reward rate".bold(), config.base_reward_rate);
         println!(
-            "{}: {} ORE",
+            "{}: {} GEMM",
             "Top stake".bold(),
             amount_u64_to_string(config.top_balance)
         );
