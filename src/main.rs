@@ -16,7 +16,6 @@ mod rewards;
 mod send_and_confirm;
 mod stake;
 mod transfer;
-mod upgrade;
 mod utils;
 
 use std::{sync::Arc, sync::RwLock};
@@ -78,9 +77,6 @@ enum Commands {
 
     #[command(about = "Send GEMM to anyone, anywhere in the world.")]
     Transfer(TransferArgs),
-
-    #[command(about = "Upgrade your GEMM tokens from v1 to v2")]
-    Upgrade(UpgradeArgs),
 
     #[cfg(feature = "admin")]
     #[command(about = "Initialize the program")]
@@ -247,9 +243,6 @@ async fn main() {
         }
         Commands::Transfer(args) => {
             miner.transfer(args).await;
-        }
-        Commands::Upgrade(args) => {
-            miner.upgrade(args).await;
         }
         #[cfg(feature = "admin")]
         Commands::Initialize(_) => {

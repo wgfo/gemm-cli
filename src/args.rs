@@ -107,12 +107,3 @@ pub struct TransferArgs {
     )]
     pub to: String,
 }
-
-#[derive(Parser, Debug)]
-pub struct UpgradeArgs {
-    #[arg(
-        value_name = "AMOUNT",
-        help = "The amount of GEMM to upgrade from v1 to v2. Defaults to max."
-    )]
-    pub amount: Option<f64>,
-}
