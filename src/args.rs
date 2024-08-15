@@ -84,21 +84,21 @@ pub struct RewardsArgs {}
 pub struct StakeArgs {
     #[arg(
         value_name = "AMOUNT",
-        help = "The amount of ORE to stake. Defaults to max."
+        help = "The amount of GEMM to stake. Defaults to max."
     )]
     pub amount: Option<f64>,
 
     #[arg(
         long,
         value_name = "TOKEN_ACCOUNT_ADDRESS",
-        help = "Token account to send ORE from. Defaults to the associated token account."
+        help = "Token account to send GEMM from. Defaults to the associated token account."
     )]
     pub token_account: Option<String>,
 }
 
 #[derive(Parser, Debug)]
 pub struct TransferArgs {
-    #[arg(value_name = "AMOUNT", help = "The amount of ORE to transfer.")]
+    #[arg(value_name = "AMOUNT", help = "The amount of GEMM to transfer.")]
     pub amount: f64,
 
     #[arg(
@@ -112,7 +112,7 @@ pub struct TransferArgs {
 pub struct UpgradeArgs {
     #[arg(
         value_name = "AMOUNT",
-        help = "The amount of ORE to upgrade from v1 to v2. Defaults to max."
+        help = "The amount of GEMM to upgrade from v1 to v2. Defaults to max."
     )]
     pub amount: Option<f64>,
 }
