@@ -2751,7 +2751,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ore-api"
+name = "gemm-api"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0697cf6480f6c81117db19ceeaa66206b76f1d5b0e2896767f6d797f50181475"
@@ -2762,7 +2762,7 @@ dependencies = [
  "drillx",
  "mpl-token-metadata",
  "num_enum 0.7.2",
- "ore-utils",
+ "gemm-utils",
  "solana-program",
  "spl-associated-token-account",
  "spl-token",
@@ -2771,7 +2771,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ore-cli"
+name = "gemm-cli"
 version = "2.3.0"
 dependencies = [
  "bincode",
@@ -2786,8 +2786,8 @@ dependencies = [
  "futures",
  "indicatif",
  "num_cpus",
- "ore-api",
- "ore-utils",
+ "gemm-api",
+ "gemm-utils",
  "rand 0.8.5",
  "reqwest 0.12.4",
  "serde",
@@ -2806,7 +2806,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ore-utils"
+name = "gemm-utils"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90a09a7a1e296ce157c75cf41145edb3608b838f9503125897552f4fe49acf64"
