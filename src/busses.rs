@@ -1,8 +1,8 @@
-use ore_api::{
+use gemm_api::{
     consts::{BUS_ADDRESSES, TOKEN_DECIMALS},
     state::Bus,
 };
-use ore_utils::AccountDeserialize;
+use gemm_utils::AccountDeserialize;
 
 use crate::Miner;
 
@@ -14,7 +14,7 @@ impl Miner {
             match Bus::try_from_bytes(&data) {
                 Ok(bus) => {
                     let rewards = (bus.rewards as f64) / 10f64.powf(TOKEN_DECIMALS as f64);
-                    println!("Bus {}: {:} ORE", bus.id, rewards);
+                    println!("Bus {}: {:} GEMM", bus.id, rewards);
                 }
                 Err(_) => {}
             }
