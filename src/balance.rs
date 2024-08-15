@@ -25,7 +25,7 @@ impl Miner {
         let proof = get_proof_with_authority(&self.rpc_client, address).await;
         let token_account_address = spl_associated_token_account::get_associated_token_address(
             &address,
-            &ore_api::consts::MINT_ADDRESS,
+            &gemm_api::consts::MINT_ADDRESS,
         );
         let token_balance = if let Ok(Some(token_account)) = self
             .rpc_client
@@ -37,7 +37,7 @@ impl Miner {
             "0".to_string()
         };
         println!(
-            "Balance: {} ORE\nStake: {} ORE",
+            "Balance: {} GEMM\nStake: {} GEMM",
             token_balance,
             amount_u64_to_string(proof.balance)
         )
