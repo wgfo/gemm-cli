@@ -31,8 +31,8 @@ drillx = "2.0.0"
 futures = "0.3.30"
 indicatif = "0.17.8"
 num_cpus = "1.16.0"
-gemm-api = { git = "https://github.com/KeenHero/gemm.git" }
-gemm-utils = { git = "https://github.com/KeenHero/gem.git" }
+gemm-api = { git = "https://github.com/keenhero/gemm.git" }
+gemm-utils = { git = "https://github.com/keenhero/gemm.git" }
 rand = "0.8.4"
 reqwest = { version = "0.12", features = ["json"] }
 solana-cli-config = "^1.18"
